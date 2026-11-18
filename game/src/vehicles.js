@@ -167,12 +167,19 @@ export function spawnVehicle(kind, x, z, heading = 0, { color, driver = null, pa
     const blue = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.16, 0.3), new THREE.MeshBasicMaterial({ color: 0x2a6bff, toneMapped: false }));
     red.position.set(0.34, geo.roofY + 0.2, -0.4);
     blue.position.set(-0.34, geo.roofY + 0.2, -0.4);
-    const redGlow = makeGlowSprite(0xff2030, 7, 0.9);
-    const blueGlow = makeGlowSprite(0x2a6bff, 7, 0.9);
+    const redGlow = makeGlowSprite(0xff2030, 11, 1);
+    const blueGlow = makeGlowSprite(0x3a7bff, 11, 1);
     redGlow.position.copy(red.position);
     blueGlow.position.copy(blue.position);
-    mesh.add(red, blue, redGlow, blueGlow);
-    vehicle.bar = { red, blue, redGlow, blueGlow };
+    // the strobe also washes the road around the cruiser in red and blue
+    const wash = new THREE.Mesh(
+      new THREE.PlaneGeometry(15, 15).rotateX(-Math.PI / 2),
+      new THREE.MeshBasicMaterial({ map: glowTexture(), color: 0xff2030, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }),
+    );
+    wash.position.y = 0.09;
+    wash.renderOrder = 3;
+    mesh.add(red, blue, redGlow, blueGlow, wash);
+    vehicle.bar = { red, blue, redGlow, blueGlow, wash };
   }
   if (kind === 'sport') {
     // neon underglow in a colour that sets off the paint
@@ -358,8 +365,12 @@ function updateVehicleLook(v, dt) {
     const beat = Math.floor(world.time * 6 + v.id * 0.37) % 2 === 0;
     v.bar.red.visible = !on || beat;
     v.bar.blue.visible = !on || !beat;
-    v.bar.redGlow.visible = on && beat;
-    v.bar.blueGlow.visible = on && !beat;
+    v.bar.redGlow.visible = on;
+    v.bar.blueGlow.visible = on;
+    v.bar.redGlow.material.opacity = beat ? 1 : 0.35;
+    v.bar.blueGlow.material.opacity = beat ? 0.35 : 1;
+    v.bar.wash.visible = on;
+    v.bar.wash.material.color.setHex(beat ? 0xff2030 : 0x3a7bff);
     v.bar.red.material.color.setHex(on ? 0xff2030 : 0x7a1a22);
     v.bar.blue.material.color.setHex(on ? 0x2a6bff : 0x1a2f7a);
   }

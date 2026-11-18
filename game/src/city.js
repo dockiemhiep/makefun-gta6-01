@@ -63,6 +63,7 @@ function drawFacadePair(kind) {
   const cell = S / N;
   const lit = [];
   const local = makeRng(kind.length * 977 + 5);
+  const columnTones = Array.from({ length: N }, () => local());
   const map = canvasTexture(S, S, (ctx) => {
     ctx.fillStyle = kind === 'glass' ? '#31485a' : kind === 'brick' ? '#efe6dc' : '#fbf6ee';
     ctx.fillRect(0, 0, S, S);
@@ -79,14 +80,17 @@ function drawFacadePair(kind) {
         let wx = x + 10; let wy = y + 12; let ww = 44; let wh = 38;
         if (kind === 'glass') { wx = x + 2; wy = y + 2; ww = 60; wh = 60; }
         if (kind === 'brick') { wx = x + 17; wy = y + 13; ww = 30; wh = 38; }
-        const isLit = local() < (kind === 'glass' ? 0.2 : 0.3);
+        const isLit = local() < (kind === 'glass' ? 0.1 : 0.28);
         const g = ctx.createLinearGradient(0, wy, 0, wy + wh);
         if (isLit) {
           g.addColorStop(0, '#ffe7b8'); g.addColorStop(1, '#ffc27a');
+        } else if (kind === 'glass') {
+          // curtain wall: each column of panes keeps one tone so towers read as glass, not a checkerboard
+          const tone = columnTones[fx];
+          g.addColorStop(0, tone < 0.5 ? '#1d5674' : '#236281'); g.addColorStop(1, tone < 0.5 ? '#3f8aa3' : '#4a96ad');
         } else {
-          // unlit glass mirrors the sunset: teal above, dusty orange below
-          const warm = local();
-          g.addColorStop(0, warm < 0.5 ? '#1f5a78' : '#2c6f8a'); g.addColorStop(1, warm < 0.35 ? '#c07a5a' : '#3a7f93');
+          // unlit glass mirrors the sky: deep teal above, a little dusk warmth below
+          g.addColorStop(0, '#1f5a78'); g.addColorStop(1, local() < 0.2 ? '#8a6f78' : '#3a7f93');
         }
         ctx.fillStyle = g;
         ctx.fillRect(wx, wy, ww, wh);

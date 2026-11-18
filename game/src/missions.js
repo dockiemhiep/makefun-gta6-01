@@ -314,7 +314,8 @@ function buildObjectiveBeacon() {
   column.position.y = 11;
   const ring = new THREE.Mesh(new THREE.RingGeometry(2.6, 3.4, 40).rotateX(-Math.PI / 2), glowMaterial(0.7));
   ring.position.y = 0.08;
-  const diamond = new THREE.Mesh(new THREE.OctahedronGeometry(0.7, 0).scale(1, 1.5, 1), glowMaterial(0.9));
+  const diamond = new THREE.Mesh(new THREE.OctahedronGeometry(0.42, 0).scale(1, 1.5, 1), glowMaterial(0.95));
+  diamond.material.blending = THREE.NormalBlending; // a solid gem reads better than a glow over bright walls
   diamond.position.y = 3.4;
   for (const mesh of [column, ring, diamond]) mesh.renderOrder = 5;
   group.add(column, ring, diamond);
@@ -346,7 +347,8 @@ function animateObjectiveBeacon() {
   beacon.ring.scale.set(ringScale, 1, ringScale);
   beacon.ring.material.opacity = 0.75 * (1 - ((t * 0.8) % 1)) + 0.15;
   beacon.diamond.visible = !!followedVehicle;
-  beacon.diamond.position.y = 3.4 + 0.35 * Math.sin(t * 2.4);
+  beacon.column.visible = !followedVehicle; // a car gets the floating diamond, a place gets the light shaft
+  beacon.diamond.position.y = 2.7 + 0.25 * Math.sin(t * 2.4);
   beacon.diamond.rotation.y = t * 1.8;
 }
 

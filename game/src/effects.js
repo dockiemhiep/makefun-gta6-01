@@ -1,7 +1,6 @@
 // effects.js: short-lived visual effects from a fixed pool of additive sprites and lines.
 // Muzzle flashes, bullet tracers, crash sparks, tyre smoke, explosions and pickup sparkles.
 import * as THREE from '../vendor/three.module.min.js';
-import { world } from './world.js';
 import { glowTexture } from './meshkit.js';
 
 const POOL_SIZE = 90;
@@ -109,6 +108,3 @@ export function updateEffects(dt) {
     if (t.life <= 0) t.line.visible = false;
   }
 }
-
-/** Freeze-frame helper for screenshots: is anything still alive? */
-export const liveEffectCount = () => particles.filter((p) => p.life > 0).length + (world.time > 0 ? 0 : 0);

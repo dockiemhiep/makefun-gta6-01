@@ -44,6 +44,7 @@ export function initHud() {
   const root = document.getElementById('hud');
   const stars = Array.from({ length: MAX_STARS }, () => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${STAR_PATH}"/></svg>`).join('');
   root.innerHTML = `
+    <div class="hud-speedlines" data-el="speedLines"></div>
     <div class="hud-vignette" data-el="vignette"></div>
     <div class="hud-mission hud-panel" data-el="mission">
       <div class="hud-mission-tag" data-el="missionTag">Mission</div>
@@ -119,7 +120,7 @@ export function pushFeedLine(title, sub = '') {
   }
   el.feed.prepend(line);
   while (el.feed.children.length > 3) el.feed.lastChild.remove();
-  setTimeout(() => line.remove(), 4200);
+  if (world.mode !== 'shot') setTimeout(() => line.remove(), 4200); // a staged screenshot keeps its feed
 }
 
 const formatMoney = (n) => `$${Math.round(n).toLocaleString('en-US')}`;
@@ -312,8 +313,11 @@ export function updateHud(dt) {
     setText('car', vehicle.name);
     el.carHealth.style.transform = `scaleX(${clamp(vehicle.hp / vehicle.spec.hp, 0, 1).toFixed(2)})`;
   }
+  // streaks at the screen edge sell speed above ~55 mph
+  const rush = world.speedLines ?? (vehicle ? clamp((Math.abs(vehicle.speed) - 24) / 20, 0, 1) : 0);
+  el.speedLines.style.opacity = rush.toFixed(2);
   const reach = vehicleInReach();
-  setShown('prompt', !!reach || (!!vehicle && Math.abs(vehicle.speed) < 2 && world.time < 30));
+  setShown('prompt', !!reach || (!!vehicle && Math.abs(vehicle.speed) < 2 && world.time < 20 && world.mode === 'play'));
   if (reach) {
     const verb = reach.owned ? 'Enter' : reach.driver === 'traffic' ? 'Jack' : 'Steal';
     const key = `${verb}:${reach.id}`;
