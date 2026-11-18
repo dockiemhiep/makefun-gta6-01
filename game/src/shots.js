@@ -1,19 +1,20 @@
 // shots.js: deterministic screenshot staging behind ?shot=<name>&seed=1. Each scene sets the
 // world state (player, cars, police, wanted level, mission, camera), runs the real simulation
 // for a moment so the street is alive, then freezes and sets window.__shotReady = true.
-// Scenes: cover (on foot by the Kestrel GT), drive (chase cam at speed), wanted (4-star pursuit),
-// mission (First Score paid out at Benny's Garage), plus showroom, a development view.
+// Scenes: cover (at the Kestrel GT's door, steal prompt up), drive (chase cam at speed), wanted (an officer
+// on foot firing on the getaway at 4 stars), mission (First Score paid out at Benny's Garage), plus
+// showroom, a development view. Gunfire, prompts, banners and feed lines in a frame come from the game itself.
 import { world, setWanted, groundHeight } from './world.js';
 import { spawnVehicle, placeVehicle } from './vehicles.js';
 import { populateTrafficAround, spawnTrafficCarAt } from './traffic.js';
 import { populatePedestriansAround, spawnPedestrian } from './pedestrians.js';
 import { placePlayerOnFoot, enterVehicle } from './player.js';
 import { stagePoliceChase } from './police.js';
-import { stageMissionForShot, startMission } from './missions.js';
+import { stageMissionForShot, startMission, completeMission } from './missions.js';
 import { setCameraShot } from './camera.js';
-import { showBanner, updateHud, pushFeedLine, clearFeedLines } from './hud.js';
+import { holdBanner, updateHud, clearFeedLines } from './hud.js';
 import { animateFigure } from './characters.js';
-import { spawnTracer, spawnMuzzleFlash, spawnSmoke, spawnSparks } from './effects.js';
+import { spawnSmoke } from './effects.js';
 
 /** Run the simulation for a number of seconds at the fixed step. */
 function runSimulation(simulateStep, seconds) {
@@ -66,20 +67,16 @@ function chaseCameraOn(vehicle, back, height, side, fov, lookAhead = 14, lookHei
   );
 }
 
-/** Police gunfire toward a target for the frozen frame. */
-function fireTracersAt(shooters, target) {
-  for (const c of shooters) {
-    const dx = target.pos.x - c.pos.x;
-    const dz = target.pos.z - c.pos.z;
-    const d = Math.hypot(dx, dz) || 1;
-    const mx = c.pos.x + (dx / d) * 2.2;
-    const mz = c.pos.z + (dz / d) * 2.2;
-    spawnMuzzleFlash(mx, 1.25, mz);
-    spawnTracer(mx, 1.25, mz, target.pos.x, 0.95, target.pos.z);
+/** Step the simulation until the test passes or the time runs out. Returns true when it passed. */
+function runUntil(simulateStep, test, maxSeconds) {
+  for (let i = 0; i < Math.round(maxSeconds * 60); i += 1) {
+    runSimulation(simulateStep, 1 / 60);
+    if (test()) return true;
   }
+  return false;
 }
 
-/** 1 COVER: on foot beside the pink Kestrel GT on Marea Boulevard at sunset, a PSPD cruiser closing in. */
+/** 1 COVER: Mara at the driver's door of the pink Kestrel GT on Marea Boulevard, the steal prompt up, a PSPD cruiser closing in. */
 function stageCover(simulateStep) {
   const p = world.player;
   p.money = 1250;
@@ -88,11 +85,17 @@ function stageCover(simulateStep) {
   p.armor = 60;
   startMission('firstScore', { quiet: true });
   const kestrel = world.vehicles.find((v) => v.marked);
-  clearVehiclesNear(-305, 26, 30);
-  placeVehicle(kestrel, -306.6, 28.6, Math.PI + 0.55, 0);
+  clearVehiclesNear(-305, 30, 32);
+  const car = { x: -306.84, z: 35.26, heading: Math.PI + 0.45 };
+  placeVehicle(kestrel, car.x, car.z, car.heading, 0);
   kestrel.parked = true;
   world.mission.objective = 'Steal the pink Kestrel GT on Marea Blvd';
-  placePlayerOnFoot(-310.9, 32.1, 2.45);
+  // the driver's side is the car's left: Mara stands 1.55 m out from the centreline, level with the door
+  // (1.7 m from the car's centre, inside the 3.4 m reach), so the HUD raises its own "E Steal Kestrel GT"
+  // prompt. She is turned to look back down the street, three-quarters on to the lens.
+  const leftX = Math.cos(car.heading);
+  const leftZ = -Math.sin(car.heading);
+  placePlayerOnFoot(car.x + leftX * 1.55 + leftZ * 0.7, car.z + leftZ * 1.55 - leftX * 0.7, 0.4);
   // traffic rolling both ways and people out on the promenade and the hotel side
   spawnTrafficCarAt('taxi', 'x', 0, 6, -1);
   spawnTrafficCarAt('sedan', 'x', 0, -34, 1, 0x2f6fb5);
@@ -104,16 +107,16 @@ function stageCover(simulateStep) {
   for (const [x, z, h] of [[-313.5, 22, 0.2], [-314.6, 19.5, 3.3], [-295.2, 24, 0], [-294.6, 16, Math.PI], [-315, 8, 0], [-294.8, 12, 3.1], [-295.4, 29, 2.9]]) {
     spawnPedestrian(x, z, { heading: h });
   }
-  runSimulation(simulateStep, 1.6);
-  // the theft was seen: one star, and a cruiser rolling down the boulevard with its lights on
+  runSimulation(simulateStep, 3.2); // long enough for the street to mix and the bobbing diamond to ride high
+  // the heat is already on: one star, and a cruiser rolling down the boulevard with its lights on
   setWanted(1);
-  stagePoliceChase([{ x: -303.5, z: 14.2, heading: 0.35, speed: 7 }]);
+  stagePoliceChase([{ x: -305.9, z: 20.5, heading: 0.12, speed: 7 }]);
   runSimulation(simulateStep, 0.07);
   world.wanted.seen = true;
   // nobody may stand between the lens and the hero
-  for (const ped of world.peds) if (ped.pos.z > 29 && ped.pos.x < -300) ped.group.visible = false;
+  for (const ped of world.peds) if (ped.pos.z > 31 && ped.pos.x < -300) ped.group.visible = false;
   posePlayerFigure('move', 0, 0.3);
-  setCameraShot(-311.9, 1.8, 37.3, -303.5, 2.4, 14, 56);
+  setCameraShot(-310.5, 1.6, 40.3, -306.5, 0.17, 32.5, 56);
 }
 
 /** 2 DRIVE: chase cam on the stolen Kestrel at speed down Sunset Strip, overtaking through traffic. */
@@ -146,7 +149,12 @@ function stageDrive(simulateStep) {
   world.speedLines = 1;
 }
 
-/** 3 WANTED: four stars on the Heat Escape job, PSPD cruisers boxing the Kestrel in at the boulevard junction. */
+/**
+ * 3 WANTED: four stars on the Heat Escape job, on Sunset Strip by the beachfront junction. A cruiser pulls
+ * up behind Mara on foot and the simulation lets its officer out; she takes the Kestrel and guns it back
+ * past them, and the frame freezes on the officer's next shot at the car (fired by police.js), with a
+ * second cruiser swinging off the boulevard after her.
+ */
 function stageWanted(simulateStep) {
   const p = world.player;
   p.money = 1250;
@@ -154,39 +162,39 @@ function stageWanted(simulateStep) {
   p.ammo = 11;
   p.health = 64;
   p.armor = 30;
-  placePlayerOnFoot(-290, 0.6, -Math.PI / 2);
+  const FOOT = { x: -289.2, z: -3.2 }; // Mara on foot in the westbound lane, facing the beach
+  placePlayerOnFoot(FOOT.x, FOOT.z, -Math.PI / 2);
   clearVehiclesNear(-290, 0, 70);
   spawnTrafficCarAt('taxi', 'x', 0, 52, -1);
   spawnTrafficCarAt('sedan', 'x', 0, -62, 1, 0x7a3fa0);
   populatePedestriansAround(-300, 0, 26, 8, 80);
   runSimulation(simulateStep, 1.2);
   stageMissionForShot('heatEscape', 'run');
-  setWanted(4);
-  const G = { x: -290, z: 0.6 };
-  const getaway = spawnVehicle('sport', G.x, G.z, 0, { color: 0xff2e88 });
-  driveAtSpeed(getaway, G.x, G.z, -Math.PI / 2 - 0.3, 19, -0.6);
-  getaway.input.handbrake = true;
-  const cruisers = stagePoliceChase([
-    { x: G.x + 2.6, z: G.z - 3.7, heading: -Math.PI / 2 + 0.25, speed: 18 },
-    { x: G.x + 3.5, z: G.z + 6.2, heading: -Math.PI / 2 - 0.2, speed: 18 },
-    { x: -301.5, z: -11, heading: 0.5, speed: 9 },
-    { x: -299, z: 13.5, heading: Math.PI - 0.5, speed: 9 },
-    { x: -308.5, z: 2.2, heading: Math.PI / 2, speed: 2 },
-    { x: -306, z: -40, heading: 0, speed: 14 },
-  ]);
-  runSimulation(simulateStep, 0.05);
-  world.wanted.seen = true;
-  fireTracersAt(cruisers.slice(2, 5), getaway);
-  spawnSparks(getaway.pos.x + 1.2, 0.8, getaway.pos.z - 1.6, 8);
-  for (let i = 0; i < 4; i += 1) spawnSmoke(getaway.pos.x + 2.6 + i * 1.2, 0.4 + i * 0.25, getaway.pos.z + 0.9 - i * 0.3, false, 1.2 + i * 0.5);
-  runSimulation(simulateStep, 0.034);
   clearFeedLines();
-  pushFeedLine('Wanted: 4 stars', 'PSPD responding');
-  // look a little north of west: the Ferris wheel sits behind the action and the sun stays at the frame edge
-  setCameraShot(getaway.pos.x + 9.5, 3.3, getaway.pos.z + 3.6, getaway.pos.x - 10, 0.5, getaway.pos.z - 2.5, 66);
+  setWanted(4);
+  // a cruiser stopped in its box-in slot 4.5 m behind her: a second later police.js sends its officer out
+  stagePoliceChase([{ x: FOOT.x + 4.8, z: FOOT.z, heading: -Math.PI / 2, speed: 0 }]);
+  const isOfficer = (ped) => ped.isCop && ped.state !== 'dead';
+  runUntil(simulateStep, () => world.peds.some(isOfficer), 3);
+  const officer = world.peds.find(isOfficer);
+  // Mara is in the Kestrel, coming back up the Strip past the officer; more PSPD arrive off the boulevard
+  const getaway = spawnVehicle('sport', FOOT.x, FOOT.z, 0, { color: 0xff2e88 });
+  driveAtSpeed(getaway, -290.2, 1.9, Math.PI / 2 - 0.3, 19, 0);
+  stagePoliceChase([
+    { x: -301, z: -3.6, heading: 1.15, speed: 14 },
+    { x: -301.7, z: 14, heading: Math.PI, speed: 16 },
+  ]);
+  // freeze on the officer's next shot: his fire timer is brought forward, the shot itself is police.js's own
+  if (officer) {
+    officer.fireClock = 0.03;
+    runUntil(simulateStep, () => officer.aimTime > 0.55, 1);
+  }
+  world.wanted.seen = true;
+  // look west down the Strip: the Ferris wheel stands over the junction behind the chase
+  setCameraShot(-279, 2.2, 0.8, -289, 1.24, 0.8, 50);
 }
 
-/** 4 MISSION: the Kestrel delivered inside the marker at Benny's Garage, payout banner up. */
+/** 4 MISSION: the Kestrel delivered at Benny's Garage and paid out: marker cleared, banner up, save written. */
 function stageMission(simulateStep) {
   const p = world.player;
   p.money = 1250;
@@ -204,18 +212,12 @@ function stageMission(simulateStep) {
   spawnVehicle('van', garage.x + 12, garage.z - 2.4, Math.PI + 0.1, { parked: true, color: 0x1fa8a0 });
   spawnTrafficCarAt('taxi', 'z', 7, garage.x - 30, 1);
   runSimulation(simulateStep, 0.4);
-  // keep the delivery marker lit under the car while the payout shows
-  const marker = { ...world.marker };
-  stageMissionForShot('firstScore', 'complete');
-  world.marker = marker;
-  world.mission.id = 'firstScore';
-  world.mission.title = 'First Score';
-  world.mission.giver = 'Benny';
-  world.mission.timer = -1;
-  runSimulation(simulateStep, 0.05);
+  // the game's own completion: pays out, clears the marker and its route, raises the banner, and
+  // main.js writes the save and says so in the feed
   clearFeedLines();
-  pushFeedLine('+$1,000', 'First Score paid');
-  showBanner('MISSION COMPLETE', 'First Score  +$750  ·  clean delivery +$250', 'success', 0);
+  completeMission();
+  holdBanner();
+  runSimulation(simulateStep, 0.05);
   // far enough back that the garage sign sits whole between the payout banner and the car
   setCameraShot(garage.x + 4.5, 2.2, garage.z + 15, garage.x - 1, 4.9, garage.z - 5, 60);
 }
