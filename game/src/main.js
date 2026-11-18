@@ -69,10 +69,12 @@ function updateTitleCamera() {
   setCameraShot(-306.5 + Math.sin(t * 0.7) * 1.5, 12.5 + Math.sin(t * 1.3) * 1.2, z, -288, 6, z - 75, 56);
 }
 
-function saveProgress() {
+/** Write the save; announce it in the feed only when asked and only when the write succeeded. */
+function saveProgress(announce = false) {
   const p = world.player;
-  writeSavedGame({ money: p.money, missionsDone: world.mission.done });
+  const written = writeSavedGame({ money: p.money, missionsDone: world.mission.done });
   savedMoney = p.money;
+  if (written && announce === true) pushFeedLine('Game saved', `${world.mission.done.length} of 2 jobs done`);
 }
 
 function beginPlay() {
@@ -159,8 +161,8 @@ function boot() {
   initPolice();
   initMissions();
 
-  on('missionComplete', saveProgress);
-  on('respawn', saveProgress);
+  on('missionComplete', () => saveProgress(true));
+  on('respawn', () => saveProgress());
   window.addEventListener('resize', handleResize);
   world.renderer.domElement.addEventListener('click', () => { if (world.mode === 'play') { capturePointer(); unlockAudio(); } });
   document.addEventListener('pointerlockchange', () => {

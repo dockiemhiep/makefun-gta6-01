@@ -87,6 +87,7 @@ export function initHud() {
     if (kind === 'mission' || kind === 'success' || kind === 'fail') showBanner(title, sub, kind);
     else pushFeedLine(title, sub);
   });
+  on('missionComplete', ({ title, reward }) => pushFeedLine(`+${formatMoney(reward)}`, `${title} paid`));
   on('wantedChanged', ({ level, previous }) => {
     if (level > previous) pushFeedLine(`Wanted: ${level} star${level > 1 ? 's' : ''}`, 'PSPD responding');
     else if (level === 0) pushFeedLine('You lost the heat', '');
@@ -107,6 +108,11 @@ export function showBanner(title, sub = '', kind = 'mission', seconds = 4.5) {
   shown['v:banner'] = true;
   el.banner.hidden = false;
   bannerTimer = seconds > 0 ? seconds : Infinity;
+}
+
+/** Keep the current banner up (a staged screenshot freezes on it). */
+export function holdBanner() {
+  bannerTimer = Infinity;
 }
 
 /** A small line in the feed under the weapon box: pickups, thefts, wanted changes. */
