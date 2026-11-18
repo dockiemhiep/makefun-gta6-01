@@ -63,9 +63,10 @@ function simulateStep(dt) {
 
 /** The slow drifting camera behind the title screen and story card. */
 function updateTitleCamera() {
+  // glide up and down the boulevard above the traffic, clear of the palm crowns
   const t = world.time * 0.035;
   const z = 70 - Math.sin(t) * 60;
-  setCameraShot(-321 + Math.sin(t * 0.7) * 2, 5.5 + Math.sin(t * 1.3) * 1.2, z, -296, 7, z - 70, 56);
+  setCameraShot(-306.5 + Math.sin(t * 0.7) * 1.5, 12.5 + Math.sin(t * 1.3) * 1.2, z, -288, 6, z - 75, 56);
 }
 
 function saveProgress() {
@@ -120,6 +121,7 @@ function pauseGame() {
   releasePointer();
   saveProgress();
   setEngine(false);
+  setHudVisible(false);
   showPauseMenu({ muted: isMuted(), onResume: resumeGame, onToggleMute: toggleMute, onQuit: openTitleScreen });
 }
 
@@ -127,6 +129,7 @@ function resumeGame() {
   if (world.mode !== 'paused') return;
   closeScreens();
   world.mode = 'play';
+  setHudVisible(true);
   capturePointer();
 }
 

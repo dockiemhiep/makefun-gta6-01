@@ -63,8 +63,8 @@ export function initHud() {
         <div class="hud-place"><b data-el="street"></b><span data-el="district"></span></div>
       </div>
       <div class="hud-bars">
-        <div class="hud-bar health" role="img" aria-label="Health"><i data-el="health"></i></div>
-        <div class="hud-bar armor" role="img" aria-label="Armor"><i data-el="armor"></i></div>
+        <div class="hud-bar health" role="img" aria-label="Health"><i data-el="health"></i><b>Health</b></div>
+        <div class="hud-bar armor" role="img" aria-label="Armor"><i data-el="armor"></i><b>Armor</b></div>
       </div>
     </div>
     <div class="hud-speed hud-panel" data-el="speedBox">
@@ -123,6 +123,11 @@ export function pushFeedLine(title, sub = '') {
   if (world.mode !== 'shot') setTimeout(() => line.remove(), 4200); // a staged screenshot keeps its feed
 }
 
+/** Empty the feed (staged screenshots show only the line that matters). */
+export function clearFeedLines() {
+  el.feed.replaceChildren();
+}
+
 const formatMoney = (n) => `$${Math.round(n).toLocaleString('en-US')}`;
 function formatTimer(seconds) {
   const s = Math.max(0, Math.ceil(seconds));
@@ -136,6 +141,45 @@ function resizeMinimap() {
     minimapSize = size;
     el.minimap.width = size;
     el.minimap.height = size;
+  }
+}
+
+/** A GPS line along the road grid from the player to the objective marker, in the marker's colour. */
+function drawMinimapRoute(ctx, p, marker) {
+  if (!marker) return;
+  const viaZ = roadCoord(clamp(Math.round((p.pos.z + HALF) / (HALF * 2 / BLOCKS)), 0, BLOCKS));
+  const viaX = roadCoord(clamp(Math.round((marker.x + HALF) / (HALF * 2 / BLOCKS)), 0, BLOCKS));
+  ctx.strokeStyle = marker.color || '#ffe14a';
+  ctx.globalAlpha = 0.9;
+  ctx.lineWidth = 3.2;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(p.pos.x, p.pos.z);
+  ctx.lineTo(p.pos.x, viaZ);
+  ctx.lineTo(viaX, viaZ);
+  ctx.lineTo(viaX, marker.z);
+  ctx.lineTo(marker.x, marker.z);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+const PLACE_ICONS = [['garage', 'G', '#ffb02e'], ['hideout', 'H', '#25f0e0'], ['station', 'P', '#5aa2ff'], ['hospital', '+', '#ff5a7e']];
+/** Lettered landmark badges: Benny's Garage, the hideout, the PSPD precinct and the clinic. */
+function drawMinimapPlaces(ctx, viewAngle) {
+  ctx.font = '900 11px Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (const [key, letter, color] of PLACE_ICONS) {
+    const place = world.places[key];
+    if (!place) continue;
+    ctx.save();
+    ctx.translate(place.x, place.z);
+    ctx.rotate(-(viewAngle + Math.PI)); // keep the letter upright on the turning map
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#140c1e';
+    ctx.fillText(letter, 0, 0.5);
+    ctx.restore();
   }
 }
 
@@ -191,6 +235,9 @@ export function drawMinimap() {
   }
   ctx.stroke();
   ctx.setLineDash([]);
+
+  drawMinimapRoute(ctx, p, world.marker);
+  drawMinimapPlaces(ctx, viewAngle);
 
   // pickups, traffic and police
   for (const pickup of world.pickups) {
@@ -323,7 +370,7 @@ export function updateHud(dt) {
     const key = `${verb}:${reach.id}`;
     if (shown.prompt !== key) { shown.prompt = key; el.prompt.innerHTML = `<kbd>E</kbd>${verb} ${reach.name}`; }
   } else if (vehicle && shown.prompt !== 'exit') { shown.prompt = 'exit'; el.prompt.innerHTML = '<kbd>E</kbd>Exit vehicle'; }
-  setShown('crosshair', p.weapon === 'pistol' && !vehicle && p.state === 'foot');
+  setShown('crosshair', p.weapon === 'pistol' && !vehicle && p.state === 'foot' && world.mode === 'play');
 
   // wanted pulse, hurt flash, arrest meter
   const heat = w.level > 0;

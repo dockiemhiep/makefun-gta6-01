@@ -69,7 +69,7 @@ export function showStoryCard(intro, onBegin) {
       <div class="card">
         <h2>${intro.title}</h2>
         ${lines}
-        <p class="signoff">${intro.signoff}</p>
+        <p class="signoff">${intro.signoff.replace(' - ', ' — ')}</p>
         <nav class="menu"><button type="button" class="primary" data-action="begin">Hit the street</button></nav>
       </div>
     </section>`, (e) => { if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); onBegin(); } });
@@ -82,12 +82,14 @@ export function showPauseMenu({ muted, onResume, onToggleMute, onQuit }) {
     <section class="screen screen-card" aria-label="Paused">
       <div class="card">
         <h2>Paused</h2>
-        <nav class="menu">
-          <button type="button" class="primary" data-action="resume">Resume</button>
-          <button type="button" data-action="mute">${muted ? 'Sound: off' : 'Sound: on'}</button>
-          <button type="button" data-action="quit">Save and quit to title</button>
-        </nav>
-        ${controlsMarkup()}
+        <div class="card-columns">
+          <nav class="menu" aria-label="Pause menu">
+            <button type="button" class="primary" data-action="resume">Resume</button>
+            <button type="button" data-action="mute">${muted ? 'Sound: off' : 'Sound: on'}</button>
+            <button type="button" data-action="quit">Save and quit</button>
+          </nav>
+          ${controlsMarkup()}
+        </div>
       </div>
     </section>`);
   root().querySelector('[data-action="resume"]').addEventListener('click', onResume);

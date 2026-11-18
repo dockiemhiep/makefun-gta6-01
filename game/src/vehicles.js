@@ -167,13 +167,13 @@ export function spawnVehicle(kind, x, z, heading = 0, { color, driver = null, pa
     const blue = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.16, 0.3), new THREE.MeshBasicMaterial({ color: 0x2a6bff, toneMapped: false }));
     red.position.set(0.34, geo.roofY + 0.2, -0.4);
     blue.position.set(-0.34, geo.roofY + 0.2, -0.4);
-    const redGlow = makeGlowSprite(0xff2030, 11, 1);
-    const blueGlow = makeGlowSprite(0x3a7bff, 11, 1);
+    const redGlow = makeGlowSprite(0xff2030, 7.5, 1);
+    const blueGlow = makeGlowSprite(0x3a7bff, 7.5, 1);
     redGlow.position.copy(red.position);
     blueGlow.position.copy(blue.position);
     // the strobe also washes the road around the cruiser in red and blue
     const wash = new THREE.Mesh(
-      new THREE.PlaneGeometry(15, 15).rotateX(-Math.PI / 2),
+      new THREE.PlaneGeometry(12, 12).rotateX(-Math.PI / 2),
       new THREE.MeshBasicMaterial({ map: glowTexture(), color: 0xff2030, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }),
     );
     wash.position.y = 0.09;
