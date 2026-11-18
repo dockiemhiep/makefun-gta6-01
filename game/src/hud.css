@@ -1,0 +1,4 @@
+/* hud.css: page reset for the full-window game canvas. HUD, title and menu styles follow below. */
+html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1220; }
+#game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

@@ -1,14 +1,17 @@
-// A working gta6-01 entry (Node 22, standard library only): the game is this directory's
-// game/ folder, plain static files a desktop browser loads offline (game/index.html and its ES
-// modules, no library and no network request), and the program hands it in. It copies game/ and
-// screenshots/ from beside this file to /output and writes /output/dossier.json, the summary the
-// judge reads, with the vendored make.fun library. Only the plumbing, not an open world: Block
-// Dodger, a plain 2D canvas game where a paddle dodges falling blocks and catches coins, with a
-// title screen, score, lives and levels, game over and restart, flat colours and no sound. Build
-// your own open-world crime game in its place (three.js or any library you vendor under game/),
-// put your 3 or 4 PNG or JPEG screenshots in screenshots/ (the first by name is the cover) and run it.
+// NEON TIDE: Port Solano is our gta6-01 entry, an original open-world crime game built on
+// three.js, and this program hands it in (Node 22, standard library only).
+// The game is the static game/ folder beside this file. You play Mara Quill, a getaway driver
+// back in the sunset harbor city of Port Solano: 8x8 blocks to roam on foot or in any car you
+// can steal, traffic circulating the grid, pedestrians on the sidewalks, a five-star wanted
+// system with police who chase and box you in, fists and a pistol, two story missions for the
+// Tidewater crew, a HUD with a live minimap, a title screen with save and continue, and a tiny
+// WebAudio synth. It runs offline: three.js is vendored as game/vendor/three.module.min.js and
+// the game makes no network request.
 //
-// Serve it locally with `node serve.ts`, then open http://localhost:8080.
+// What this file does: copies game/ and screenshots/ to /output and writes /output/dossier.json,
+// the summary the judge reads, using the vendored make.fun library.
+//
+// Play it locally with `node serve.ts`, then open http://localhost:8080.
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
