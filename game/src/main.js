@@ -3,22 +3,22 @@
 // at a fixed 60 Hz and renders each animation frame. ?shot=<name> stages a screenshot instead.
 import * as THREE from '../vendor/three.module.min.js';
 import { world, reseed, on } from './world.js';
-import { buildSky, updateSky } from './sky.js';
-import { buildCity, updateCity } from './city.js';
-import { initEffects, updateEffects } from './effects.js';
-import { initInput, wasKeyPressed, clearPressedInput, capturePointer, releasePointer } from './input.js';
-import { initAudio, unlockAudio, toggleMute, isMuted, setEngine, updateAudio } from './audio.js';
+import { createPlayer, updatePlayer, placePlayerOnFoot } from './player.js';
 import { updateVehicles } from './vehicles.js';
 import { initTraffic, updateTraffic, populateTrafficAround } from './traffic.js';
 import { initPedestrians, updatePedestrians, populatePedestriansAround } from './pedestrians.js';
-import { createPlayer, updatePlayer, placePlayerOnFoot } from './player.js';
-import { initPickups, updatePickups } from './pickups.js';
-import { initPolice, updatePolice, clearPolice } from './police.js';
 import { initMissions, updateMissions, applyMissionProgress, STORY_INTRO } from './missions.js';
-import { hasSavedGame, loadSavedGame, writeSavedGame, clearSavedGame } from './save.js';
-import { updateFollowCamera, setCameraShot, cameraRig, snapCameraBehind } from './camera.js';
 import { initHud, updateHud, setHudVisible, pushFeedLine } from './hud.js';
+import { hasSavedGame, loadSavedGame, writeSavedGame, clearSavedGame } from './save.js';
 import { showTitleScreen, showStoryCard, showPauseMenu, closeScreens } from './menus.js';
+import { initPolice, updatePolice, clearPolice } from './police.js';
+import { initPickups, updatePickups } from './pickups.js';
+import { updateFollowCamera, setCameraShot, cameraRig, snapCameraBehind } from './camera.js';
+import { initInput, wasKeyPressed, clearPressedInput, capturePointer, releasePointer } from './input.js';
+import { initAudio, unlockAudio, toggleMute, isMuted, setEngine, updateAudio } from './audio.js';
+import { initEffects, updateEffects } from './effects.js';
+import { buildCity, updateCity } from './city.js';
+import { buildSky, updateSky } from './sky.js';
 import { stageShot } from './shots.js';
 
 const STEP = 1 / 60;

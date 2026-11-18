@@ -5,7 +5,7 @@
 import {
   world, on, BLOCKS, ROAD, HALF, CITY_MIN, CITY_MAX, WEST_LIMIT, roadCoord, clamp, MAX_STARS,
 } from './world.js';
-import { streetNameAt, districtNameAt, blockRect } from './city.js';
+import { streetNameAt, districtNameAt, blockRect } from './districts.js';
 import { vehicleInReach } from './player.js';
 import { cameraYaw } from './camera.js';
 

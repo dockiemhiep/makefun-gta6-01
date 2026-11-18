@@ -107,7 +107,7 @@ function stageCover(simulateStep) {
   runSimulation(simulateStep, 1.6);
   // the theft was seen: one star, and a cruiser rolling down the boulevard with its lights on
   setWanted(1);
-  stagePoliceChase([{ x: -306.3, z: 9.5, heading: 0, speed: 7 }]);
+  stagePoliceChase([{ x: -303.5, z: 14.2, heading: 0.35, speed: 7 }]);
   runSimulation(simulateStep, 0.07);
   world.wanted.seen = true;
   // nobody may stand between the lens and the hero

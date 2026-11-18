@@ -3,13 +3,9 @@
 // docks, neon signs, lit windows, palms, streetlights, the promenade, beach, pier and Ferris wheel.
 // It also registers building colliders and the named places missions use.
 import * as THREE from '../vendor/three.module.min.js';
-import {
-  world, BLOCKS, BLOCK, ROAD, CELL, HALF, CITY_MIN, CITY_MAX, WEST_LIMIT, roadCoord, nearestRoadIndex, addCollider, makeRng, clamp,
-} from './world.js';
+import { world, BLOCKS, ROAD, CITY_MIN, CITY_MAX, WEST_LIMIT, roadCoord, addCollider, makeRng, clamp } from './world.js';
 import { GeometryBatch, canvasTexture, makeGlowPoints, glowTexture, placeMatrix } from './meshkit.js';
-
-export const STREETS_NS = ['Marea Blvd', 'Coral Ave', 'Lantern Ave', 'Sabal Ave', 'Meridian Ave', 'Cobalt Ave', 'Foundry Ave', 'Tern Ave', 'Eastline Rd'];
-export const STREETS_EW = ['Northgate Rd', 'Vesper St', 'Orchid St', 'Bolero St', 'Sunset Strip', 'Gull St', 'Canal St', 'Harbor St', 'Dockside St'];
+import { blockRect, districtOfBlock } from './districts.js';
 
 const FLOOR_H = 3.4;
 const SHOP_H = 4.4;
@@ -29,32 +25,6 @@ const rnd = (a = 1, b) => (b === undefined ? rng() * a : a + rng() * (b - a));
 const rndInt = (a, b) => Math.floor(rnd(a, b + 1));
 const pickOne = (arr) => arr[Math.floor(rng() * arr.length)];
 const maybe = (p) => rng() < p;
-
-/** The rectangle of block (bi, bj), sidewalk included: bi counts west to east, bj north to south. */
-export function blockRect(bi, bj) {
-  return { x0: roadCoord(bi) + ROAD / 2, x1: roadCoord(bi + 1) - ROAD / 2, z0: roadCoord(bj) + ROAD / 2, z1: roadCoord(bj + 1) - ROAD / 2 };
-}
-const blockIndexOf = (c) => clamp(Math.floor((c + HALF) / CELL), 0, BLOCKS - 1);
-
-/** District of a block: sets its building style, heights and how much neon it carries. */
-export function districtOfBlock(bi, bj) {
-  if (bi <= 1) return 'beach';
-  if (bj >= 6) return 'docks';
-  if (bi >= 3 && bi <= 6 && bj >= 2 && bj <= 5) return 'downtown';
-  return 'midtown';
-}
-const DISTRICT_NAMES = { beach: 'Marea Beach', docks: 'The Docks', downtown: 'Downtown', midtown: 'Old Solano', coast: 'Solano Shore' };
-/** Display name of the district at a point, for the HUD. */
-export function districtNameAt(x, z) {
-  if (x < CITY_MIN) return DISTRICT_NAMES.coast;
-  return DISTRICT_NAMES[districtOfBlock(blockIndexOf(x), blockIndexOf(z))];
-}
-/** Display name of the nearest street at a point, for the HUD. */
-export function streetNameAt(x, z) {
-  const i = nearestRoadIndex(x);
-  const j = nearestRoadIndex(z);
-  return Math.abs(x - roadCoord(i)) < Math.abs(z - roadCoord(j)) ? STREETS_NS[i] : STREETS_EW[j];
-}
 
 // ---- Procedural textures ---------------------------------------------------------------------
 function drawFacadePair(kind) {

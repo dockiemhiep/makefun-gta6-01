@@ -101,7 +101,7 @@ function checkMissionStartContact() {
   const state = world.player?.state;
   if (!id || !pos || (state !== 'foot' && state !== 'drive')) return;
   const start = missionStartPoint(id);
-  if (dist(pos.x, pos.z, start.x, start.z) <= 4) startMission(id);
+  if (dist(pos.x, pos.z, start.x, start.z) <= 5.5) startMission(id); // roomy enough to roll into by car
 }
 
 // ---- Mission flow --------------------------------------------------------------------------
