@@ -1,4 +1,130 @@
-/* hud.css: page reset for the full-window game canvas. HUD, title and menu styles follow below. */
-html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1220; }
+/* hud.css: the look of NEON TIDE's heads-up display, minimap frame, mission banners, title
+   screen, story card and pause menu. Sizes are in em off a root that scales with window height. */
+:root {
+  --teal: #25f0e0;
+  --pink: #ff3d9a;
+  --orange: #ffa02e;
+  --gold: #ffe14a;
+  --ink: #140c1e;
+  --panel: rgba(20, 12, 30, 0.78);
+  --display: "Avenir Next Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+}
+html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1220; color: #fff; font-family: var(--display); }
 #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+[hidden] { display: none !important; }
+
+/* ---- HUD ---- */
+#hud { position: fixed; inset: 0; pointer-events: none; font-size: max(10px, 1.39vh); font-weight: 800; font-style: italic; letter-spacing: 0.02em; text-transform: uppercase; }
+#hud > * { position: absolute; }
+.hud-panel { background: var(--panel); border-radius: 0.5em; box-shadow: 0 0.2em 1.2em rgba(0, 0, 0, 0.35); }
+
+.hud-top-right { top: 2em; right: 2.4em; display: flex; flex-direction: column; align-items: flex-end; gap: 0.7em; }
+.hud-money { font-size: 4.2em; line-height: 1; color: #7dffb0; text-shadow: 0 0.06em 0 #063a24, 0 0 0.5em rgba(0, 0, 0, 0.6); padding: 0.08em 0.3em 0.02em; background: var(--panel); border-radius: 0.14em; }
+.hud-stars { display: flex; gap: 0.35em; padding: 0.55em 0.8em; }
+.hud-stars svg { width: 3.3em; height: 3.3em; fill: rgba(255, 255, 255, 0.14); stroke: rgba(255, 255, 255, 0.45); stroke-width: 1.4; }
+.hud-stars svg.lit { fill: var(--gold); stroke: #fff6c2; filter: drop-shadow(0 0 0.5em rgba(255, 190, 40, 0.95)); }
+.hud-stars.searching svg.lit { animation: star-blink 0.7s steps(2, jump-none) infinite; }
+@keyframes star-blink { 50% { fill: rgba(255, 225, 74, 0.25); filter: none; } }
+.hud-weapon { display: flex; align-items: center; gap: 0.8em; padding: 0.5em 1em 0.5em 0.7em; }
+.hud-weapon svg { width: 4.4em; height: 2.6em; fill: #fff; }
+.hud-weapon-name { font-size: 1.9em; }
+.hud-ammo { font-size: 2.6em; color: var(--orange); min-width: 1.4em; text-align: right; }
+.hud-ammo.low { color: #ff5a5a; }
+
+.hud-mission { top: 2em; left: 2.4em; padding: 0.7em 1.2em 0.8em; border-left: 0.5em solid var(--pink); max-width: 34em; }
+.hud-mission-tag { font-size: 1.3em; color: var(--pink); letter-spacing: 0.16em; }
+.hud-mission-title { font-size: 2.7em; line-height: 1.05; }
+.hud-timer { font-size: 2.7em; color: var(--gold); margin-left: 0.5em; font-variant-numeric: tabular-nums; }
+.hud-timer.urgent { color: #ff5a5a; }
+
+.hud-objective { left: 50%; bottom: 2.6em; transform: translateX(-50%); padding: 0.55em 1.3em; font-size: 2.3em; font-style: normal; font-weight: 700; text-transform: none; letter-spacing: 0; white-space: nowrap; background: var(--panel); border-radius: 0.3em; border-bottom: 0.14em solid var(--teal); }
+.hud-objective b { color: var(--gold); font-weight: 800; }
+
+.hud-bottom-left { left: 2.4em; bottom: 2.2em; display: flex; flex-direction: column; gap: 0.7em; }
+.minimap-frame { position: relative; width: 25em; height: 25em; border-radius: 1.4em; overflow: hidden; border: 0.35em solid var(--teal); box-shadow: 0 0 1.6em rgba(37, 240, 224, 0.45), 0 0.3em 1.4em rgba(0, 0, 0, 0.5); background: #1b1830; }
+.minimap-frame canvas { width: 100%; height: 100%; display: block; }
+.minimap-north { position: absolute; top: 0.3em; left: 50%; transform: translateX(-50%); font-size: 1.4em; color: #fff; text-shadow: 0 0 0.3em #000; }
+.hud-place { position: absolute; left: 0; right: 0; bottom: 0; padding: 0.35em 0.7em; background: linear-gradient(transparent, rgba(12, 6, 20, 0.92) 45%); font-size: 1.45em; display: flex; justify-content: space-between; gap: 0.6em; white-space: nowrap; }
+.hud-place span { color: var(--teal); }
+.hud-bars { display: flex; gap: 0.6em; width: 25.7em; }
+.hud-bar { flex: 1; height: 1.5em; background: rgba(12, 6, 20, 0.8); border-radius: 0.4em; overflow: hidden; border: 0.14em solid rgba(255, 255, 255, 0.25); }
+.hud-bar.health { flex: 1.6; }
+.hud-bar i { display: block; height: 100%; width: 100%; transform-origin: left; }
+.hud-bar.health i { background: linear-gradient(#ff6a8e, #ff2f62); }
+.hud-bar.armor i { background: linear-gradient(#7fe9ff, #25b9f0); }
+
+.hud-speed { right: 2.4em; bottom: 2.2em; padding: 0.6em 1.3em 0.8em; text-align: right; min-width: 15em; border-right: 0.5em solid var(--orange); }
+.hud-speed-value { font-size: 5.6em; line-height: 0.95; font-variant-numeric: tabular-nums; }
+.hud-speed-unit { font-size: 1.7em; color: var(--orange); margin-left: 0.3em; }
+.hud-car { font-size: 1.8em; color: var(--teal); }
+.hud-car-health { height: 0.7em; margin-top: 0.5em; background: rgba(255, 255, 255, 0.18); border-radius: 0.3em; overflow: hidden; }
+.hud-car-health i { display: block; height: 100%; background: var(--orange); transform-origin: right; }
+
+.hud-prompt { left: 50%; bottom: 9.4em; transform: translateX(-50%); padding: 0.5em 1.1em; font-size: 1.9em; white-space: nowrap; }
+kbd { display: inline-block; min-width: 1.5em; padding: 0.05em 0.4em; margin-right: 0.4em; text-align: center; font: inherit; font-style: normal; color: var(--ink); background: var(--gold); border-radius: 0.25em; box-shadow: 0 0.12em 0 #a8870c; }
+
+.hud-banner { top: 13%; left: 50%; transform: translateX(-50%); text-align: center; padding: 1em 3.4em 1.1em; background: linear-gradient(90deg, transparent, rgba(20, 12, 30, 0.9) 18%, rgba(20, 12, 30, 0.9) 82%, transparent); border-top: 0.3em solid var(--pink); border-bottom: 0.3em solid var(--teal); white-space: nowrap; animation: banner-in 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
+.hud-banner-title { font-size: 5.6em; line-height: 1; color: var(--gold); text-shadow: 0 0.05em 0 #7a4b00, 0 0 0.6em rgba(255, 190, 40, 0.6); }
+.hud-banner-sub { font-size: 2.5em; margin-top: 0.15em; font-style: normal; text-transform: none; letter-spacing: 0; }
+.hud-banner.success .hud-banner-title { color: #7dffb0; text-shadow: 0 0.05em 0 #06512f, 0 0 0.6em rgba(60, 255, 150, 0.6); }
+.hud-banner.fail .hud-banner-title { color: #ff5a6e; text-shadow: 0 0.05em 0 #5a0a16, 0 0 0.6em rgba(255, 60, 90, 0.6); }
+.hud-banner.mission .hud-banner-title { color: #fff; }
+@keyframes banner-in { from { opacity: 0; transform: translateX(-50%) scale(1.25); } }
+
+.hud-feed { right: 2.4em; top: 23em; display: flex; flex-direction: column; align-items: flex-end; gap: 0.5em; }
+.hud-feed div { padding: 0.35em 0.9em; font-size: 1.8em; background: var(--panel); border-radius: 0.3em; border-right: 0.25em solid var(--teal); animation: feed-in 0.25s ease-out; }
+.hud-feed div small { font-size: 0.8em; color: var(--gold); margin-left: 0.6em; text-transform: none; font-style: normal; }
+@keyframes feed-in { from { opacity: 0; transform: translateX(2em); } }
+
+.hud-crosshair { left: 50%; top: 46%; width: 2.6em; height: 2.6em; margin: -1.3em 0 0 -1.3em; border: 0.2em solid rgba(255, 255, 255, 0.9); border-radius: 50%; box-shadow: 0 0 0.3em #000, inset 0 0 0.3em #000; }
+.hud-crosshair::after { content: ""; position: absolute; left: 50%; top: 50%; width: 0.4em; height: 0.4em; margin: -0.2em; background: var(--pink); border-radius: 50%; }
+.hud-vignette { inset: 0; opacity: 0; transition: opacity 0.2s; }
+.hud-vignette.heat { box-shadow: inset 0 0 12em rgba(255, 40, 80, 0.55); }
+.hud-vignette.heat.alt { box-shadow: inset 0 0 12em rgba(50, 110, 255, 0.55); }
+.hud-vignette.hurt { box-shadow: inset 0 0 14em rgba(255, 0, 40, 0.9); }
+.hud-arrest { left: 50%; top: 30%; transform: translateX(-50%); width: 26em; padding: 0.6em 1em 0.8em; text-align: center; font-size: 1.6em; }
+.hud-arrest i { display: block; height: 0.6em; margin-top: 0.4em; background: #5aa2ff; border-radius: 0.3em; transform-origin: left; }
+.hud-state { inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(20, 8, 30, 0.55); animation: state-in 0.5s ease-out; }
+.hud-state-title { font-size: 13em; line-height: 1; letter-spacing: 0.04em; color: #5aa2ff; text-shadow: 0 0.04em 0 #0a2a6a, 0 0 0.4em rgba(60, 130, 255, 0.7); }
+.hud-state.wasted .hud-state-title { color: #ff4f6e; text-shadow: 0 0.04em 0 #5a0a16, 0 0 0.4em rgba(255, 60, 90, 0.7); }
+.hud-state-sub { font-size: 2.6em; font-style: normal; text-transform: none; }
+@keyframes state-in { from { opacity: 0; } }
+
+/* ---- Screens: title, story card, pause ---- */
+#screens { position: fixed; inset: 0; font-size: max(10px, 1.39vh); pointer-events: none; }
+.screen { position: absolute; inset: 0; pointer-events: auto; display: flex; }
+.screen-title { background: linear-gradient(100deg, rgba(20, 8, 30, 0.9) 0%, rgba(20, 8, 30, 0.62) 38%, rgba(20, 8, 30, 0) 68%), linear-gradient(0deg, rgba(20, 8, 30, 0.55), transparent 30%); align-items: stretch; }
+.title-left { width: 52em; padding: 4.5em 0 4em 6em; display: flex; flex-direction: column; }
+.logo { font-style: italic; font-weight: 800; text-transform: uppercase; line-height: 0.86; margin: 0; }
+.logo-main { display: block; font-size: 9.6em; letter-spacing: -0.01em; color: #fff; text-shadow: 0.035em 0.035em 0 var(--pink), 0.07em 0.07em 0 var(--teal), 0 0 0.5em rgba(255, 61, 154, 0.5); }
+.logo-sub { display: inline-block; margin-top: 0.7em; font-size: 2.5em; white-space: nowrap; letter-spacing: 0.3em; color: var(--ink); background: var(--gold); padding: 0.15em 0.5em 0.1em 0.7em; transform: skewX(-10deg); }
+.tagline { margin: 1.3em 0 0; font-size: 2.1em; font-weight: 600; max-width: 20em; line-height: 1.3; }
+.menu { margin-top: auto; display: flex; flex-direction: column; gap: 1em; align-items: flex-start; }
+.menu button { pointer-events: auto; font: inherit; font-size: 3em; font-style: italic; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; color: #fff; background: rgba(20, 12, 30, 0.72); border: 0.08em solid rgba(255, 255, 255, 0.35); border-left: 0.3em solid var(--teal); padding: 0.3em 1.4em 0.3em 0.8em; min-width: 11.5em; text-align: left; cursor: pointer; border-radius: 0.12em; transition: transform 0.12s, background 0.12s; }
+.menu button small { display: block; font-size: 0.48em; font-style: normal; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--gold); }
+.menu button:hover:not(:disabled), .menu button:focus-visible { background: var(--pink); border-color: #fff; transform: translateX(0.3em); outline: none; }
+.menu button:focus-visible { box-shadow: 0 0 0 0.12em #fff, 0 0 0 0.24em var(--ink); }
+.menu button:disabled { opacity: 0.45; cursor: default; }
+.menu button.primary { border-left-color: var(--pink); }
+.title-right { margin-left: auto; align-self: flex-end; margin: 0 4em 4em auto; }
+.controls-card { background: var(--panel); border-radius: 0.8em; padding: 1.6em 2.2em 1.8em; border-top: 0.3em solid var(--teal); }
+.controls-card h2 { margin: 0 0 0.6em; font-size: 2.2em; font-style: italic; text-transform: uppercase; letter-spacing: 0.12em; color: var(--teal); }
+.controls-card dl { margin: 0; display: grid; grid-template-columns: auto auto; gap: 0.45em 1.6em; font-size: 1.75em; font-weight: 600; }
+.controls-card dt { color: var(--gold); font-weight: 800; white-space: nowrap; }
+.controls-card dd { margin: 0; }
+.footnote { margin: 1.4em 0 0; font-size: 1.5em; font-weight: 600; opacity: 0.85; }
+
+.screen-card { align-items: center; justify-content: center; background: rgba(20, 8, 30, 0.72); }
+.card { width: 62em; max-width: 86vw; background: rgba(20, 12, 30, 0.92); border-radius: 1em; padding: 3em 4em 3.2em; border-top: 0.5em solid var(--pink); border-bottom: 0.5em solid var(--teal); box-shadow: 0 1em 4em rgba(0, 0, 0, 0.5); }
+.card h2 { margin: 0 0 0.5em; font-size: 4.6em; font-style: italic; text-transform: uppercase; line-height: 1; color: var(--gold); }
+.card p { margin: 0 0 0.7em; font-size: 2.3em; font-weight: 600; line-height: 1.35; }
+.card .signoff { color: var(--teal); font-style: italic; }
+.card .menu { margin-top: 2em; flex-direction: row; flex-wrap: wrap; }
+.card .menu button { font-size: 2.4em; min-width: 0; }
+.card .controls-card { background: none; padding: 0; border: 0; margin-top: 1.6em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-banner, .hud-feed div, .hud-state, .hud-stars.searching svg.lit { animation: none; }
+  .menu button { transition: none; }
+}

@@ -671,11 +671,12 @@ function buildSkylineRing() {
 
 function buildPalmGeometry() {
   const batch = new GeometryBatch();
-  const trunk = new THREE.CylinderGeometry(0.16, 0.3, 2.2, 6);
+  // a gently leaning trunk in four tapering rings, wider at the foot
   let x = 0;
   for (let i = 0; i < 4; i += 1) {
     const lean = i * 0.05;
-    batch.addGeometry(trunk, new THREE.Matrix4().makeRotationZ(-lean).setPosition(x, 1.1 + i * 2.1, 0), i % 2 ? 0x9a7a5c : 0x8a6a4e);
+    const trunk = new THREE.CylinderGeometry(0.3 - (i + 1) * 0.035, 0.3 - i * 0.035 + (i === 0 ? 0.1 : 0), 2.2, 7);
+    batch.addGeometry(trunk, new THREE.Matrix4().makeRotationZ(-lean).setPosition(x, 1.1 + i * 2.1, 0), i % 2 ? 0x9a7a5c : 0x8f6e52);
     x += Math.sin(lean) * 2.1;
   }
   const crownY = 8.5;

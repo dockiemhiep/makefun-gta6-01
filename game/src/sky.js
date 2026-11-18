@@ -110,7 +110,7 @@ void main() {
 }`;
 
 /** Build the dome, sun light, fill light, fog and ocean into the scene. */
-export function buildSky(scene) {
+export function buildSky(scene, renderer) {
   scene.fog = new THREE.Fog(FOG_COLOR, 90, 820);
   scene.background = FOG_COLOR;
 
@@ -125,10 +125,19 @@ export function buildSky(scene) {
   );
   sky.dome.renderOrder = -10;
   sky.dome.frustumCulled = false;
+  if (renderer) {
+    // bake the sky into an environment map so car paint and glass towers reflect the sunset
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const skyOnly = new THREE.Scene();
+    skyOnly.add(sky.dome);
+    scene.environment = pmrem.fromScene(skyOnly, 0, 1, 3000).texture;
+    scene.environmentIntensity = 0.55;
+    pmrem.dispose();
+  }
   scene.add(sky.dome);
 
   // teal sky fill from above, warm bounce from the ground
-  scene.add(new THREE.HemisphereLight(0x8ec5ff, 0xff9e70, 1.25));
+  scene.add(new THREE.HemisphereLight(0x8ec5ff, 0xff9e70, 0.9));
 
   const sun = new THREE.DirectionalLight(SUN_COLOR, 3.4);
   sun.castShadow = true;
