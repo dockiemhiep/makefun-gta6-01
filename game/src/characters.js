@@ -32,10 +32,11 @@ function limb(w, h, d, color, pivotY, x) {
 
 /**
  * Build a figure about 1.8 m tall, facing +Z, feet at y = 0.
- * Options: skin, shirt, pants, hair colours; cap (a colour) for a hat; cop for a police uniform.
+ * Options: skin, shirt, pants, hair colours; cap (a colour) for a hat; cop for a police uniform;
+ * jacket (a colour) worn open over the shirt with a turned-up collar; ponytail for a high swept-back tail.
  * Returns { group, parts: { torso, head, armL, armR, legL, legR }, phase }.
  */
-export function createFigure({ skin = SKIN_TONES[0], shirt = SHIRT_COLORS[0], pants = PANTS_COLORS[0], hair = HAIR_COLORS[0], cap = null, cop = false, jacket = null } = {}) {
+export function createFigure({ skin = SKIN_TONES[0], shirt = SHIRT_COLORS[0], pants = PANTS_COLORS[0], hair = HAIR_COLORS[0], cap = null, cop = false, jacket = null, ponytail = false } = {}) {
   if (cop) { shirt = 0x1d2b4f; pants = 0x151a2c; cap = 0x101626; }
   const group = new THREE.Group();
   const body = new THREE.Group();
@@ -53,6 +54,30 @@ export function createFigure({ skin = SKIN_TONES[0], shirt = SHIRT_COLORS[0], pa
     const back = new THREE.Mesh(boxGeometry(0.3, 0.2, 0.08), flatMaterial(hair));
     back.position.set(0, 0.03, -0.13);
     head.add(back);
+  }
+  if (ponytail && !cap) {
+    // a high ponytail: a knot at the back of the crown and a tapering tail hanging past the collar
+    const knot = new THREE.Mesh(boxGeometry(0.16, 0.16, 0.14), flatMaterial(hair));
+    knot.position.set(0, 0.17, -0.2);
+    const tail = new THREE.Group();
+    tail.position.set(0, 0.2, -0.24);
+    tail.rotation.x = 0.38;
+    const upper = new THREE.Mesh(boxGeometry(0.14, 0.3, 0.12), flatMaterial(hair));
+    upper.position.y = -0.15;
+    const tip = new THREE.Mesh(boxGeometry(0.1, 0.22, 0.09), flatMaterial(hair));
+    tip.position.y = -0.4;
+    tail.add(upper, tip);
+    head.add(knot, tail);
+  }
+  if (jacket !== null) {
+    // the jacket hangs open: a strip of shirt down the front, a turned-up collar and a cropped hem
+    const front = new THREE.Mesh(boxGeometry(0.2, 0.62, 0.03), flatMaterial(shirt));
+    front.position.set(0, -0.02, 0.135);
+    const collar = new THREE.Mesh(boxGeometry(0.58, 0.11, 0.36), flatMaterial(jacket));
+    collar.position.set(0, 0.31, -0.02);
+    const hem = new THREE.Mesh(boxGeometry(0.56, 0.1, 0.33), flatMaterial(hair));
+    hem.position.set(0, -0.3, 0);
+    torso.add(front, collar, hem);
   }
   const armL = limb(0.15, 0.64, 0.17, jacket ?? shirt, 1.5, 0.33);
   const armR = limb(0.15, 0.64, 0.17, jacket ?? shirt, 1.5, -0.33);

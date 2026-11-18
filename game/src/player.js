@@ -22,7 +22,7 @@ const RESPAWN_DELAY = 4.2;
 
 /** Create the player figure and state at the spawn point. */
 export function createPlayer() {
-  const figure = createFigure({ skin: 0xd9a273, shirt: 0xf4f0ea, jacket: 0x19c9c0, pants: 0x1c1c26, hair: 0xff4f9a });
+  const figure = createFigure({ skin: 0xd9a273, shirt: 0xf4f0ea, jacket: 0x19c9c0, pants: 0x1c1c26, hair: 0xff4f9a, ponytail: true });
   giveFigurePistol(figure);
   const spawn = world.places.spawn;
   figure.group.position.set(spawn.x, groundHeight(spawn.x, spawn.z), spawn.z);
