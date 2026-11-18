@@ -9,6 +9,8 @@ const particles = [];
 const tracers = [];
 let nextParticle = 0;
 let nextTracer = 0;
+const TRACER_WIDTH = 0.09;
+const tracerGeometry = new THREE.BoxGeometry(1, 1, 1);
 
 /** Create the sprite and tracer pools once. */
 export function initEffects(scene) {
@@ -20,10 +22,10 @@ export function initEffects(scene) {
     particles.push({ sprite, life: 0, maxLife: 1, vx: 0, vy: 0, vz: 0, size: 1, grow: 0, gravity: 0, fade: 1 });
   }
   for (let i = 0; i < TRACER_COUNT; i += 1) {
-    const geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
-    const line = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: 0xffe6a0, transparent: true, toneMapped: false, fog: false }));
+    // a thin glowing bar stretched between muzzle and target: a 1 px line vanishes at a distance
+    const material = new THREE.MeshBasicMaterial({ color: 0xffe6a0, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, fog: false });
+    const line = new THREE.Mesh(tracerGeometry, material);
     line.visible = false;
-    line.frustumCulled = false;
     scene.add(line);
     tracers.push({ line, life: 0 });
   }
@@ -45,18 +47,17 @@ export function spawnParticle(x, y, z, color, { vx = 0, vy = 0, vz = 0, size = 1
 
 /** A bright flash at a gun muzzle. */
 export function spawnMuzzleFlash(x, y, z) {
-  spawnParticle(x, y, z, 0xffd27a, { size: 1.6, life: 0.07 });
-  spawnParticle(x, y, z, 0xffffff, { size: 0.7, life: 0.05 });
+  spawnParticle(x, y, z, 0xffb347, { size: 2.2, life: 0.08 });
+  spawnParticle(x, y, z, 0xffffff, { size: 1.0, life: 0.06 });
 }
 
 /** A bullet streak between two points that fades in a few frames. */
 export function spawnTracer(ax, ay, az, bx, by, bz, color = 0xffe6a0) {
   const t = tracers[nextTracer];
   nextTracer = (nextTracer + 1) % TRACER_COUNT;
-  const pos = t.line.geometry.attributes.position;
-  pos.setXYZ(0, ax, ay, az);
-  pos.setXYZ(1, bx, by, bz);
-  pos.needsUpdate = true;
+  t.line.position.set((ax + bx) / 2, (ay + by) / 2, (az + bz) / 2);
+  t.line.lookAt(bx, by, bz);
+  t.line.scale.set(TRACER_WIDTH, TRACER_WIDTH, Math.hypot(bx - ax, by - ay, bz - az));
   t.line.material.color.set(color);
   t.line.material.opacity = 1;
   t.line.visible = true;

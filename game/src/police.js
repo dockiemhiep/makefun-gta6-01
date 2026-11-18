@@ -7,7 +7,7 @@ import {
 } from './world.js';
 import { spawnVehicle, removeVehicle, damageVehicle, placeVehicle } from './vehicles.js';
 import { createFigure, giveFigurePistol, animateFigure } from './characters.js';
-import { spawnTracer, spawnMuzzleFlash } from './effects.js';
+import { spawnTracer, spawnMuzzleFlash, spawnSparks } from './effects.js';
 
 const DESIRED_CRUISERS = [0, 1, 2, 3, 5, 6]; // by wanted level
 const SEE_RANGE = 85;
@@ -447,7 +447,7 @@ function tryArrestPlayer(dt, level) {
   }
 }
 
-/** One police shot: flash, tracer, sound, and a 35% chance to hit the player or their car. */
+/** One police shot: flash, tracer, sound, and a 35% chance to hit the player or their car (sparks fly off a hit). */
 function fireAtPlayer(sx, sy, sz) {
   const p = world.player;
   const hit = chance(0.35);
@@ -459,6 +459,7 @@ function fireAtPlayer(sx, sy, sz) {
   spawnTracer(sx, sy, sz, tx, ty, tz);
   world.sfx('gunshot', { volume: 0.45 });
   if (!hit) return;
+  spawnSparks(tx, ty, tz, p.vehicle ? 6 : 3, p.vehicle ? 0xffd27a : 0xff5a5a);
   if (p.vehicle) {
     if (world.mode !== 'shot') damageVehicle(p.vehicle, 6);
     damagePlayer(2, 'police');
