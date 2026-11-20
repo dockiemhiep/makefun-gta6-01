@@ -3,9 +3,8 @@
 // kept topped up around the player. Police officers share world.peds but are skipped here.
 import {
   world, on, emit, rand, randInt, pick, chance, clamp, angleDiff, groundHeight, resolveCircle, reportCrime,
-  BLOCKS, CELL, HALF, CITY_MIN,
+  BLOCKS, CELL, HALF, CITY_MIN, blockRect,
 } from './world.js';
-import { blockRect } from './districts.js';
 import { createFigure, animateFigure, SKIN_TONES, SHIRT_COLORS, PANTS_COLORS, HAIR_COLORS } from './characters.js';
 
 const RING_INSET = 2; // walking line sits 2 m inside the block edge

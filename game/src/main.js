@@ -23,10 +23,12 @@ import { stageShot } from './shots.js';
 
 const STEP = 1 / 60;
 const STARTING_MONEY = 250;
+const NEW_GAME_RESTART_KEY = 'neontide.newGame';
 const params = new URLSearchParams(location.search);
 const focus = new THREE.Vector3();
 let savedMoney = -1;
 let saveClock = 0;
+let hasPlayed = false;
 
 function createRenderer() {
   const canvas = document.getElementById('game');
@@ -78,6 +80,7 @@ function saveProgress(announce = false) {
 }
 
 function beginPlay() {
+  hasPlayed = true;
   closeScreens();
   world.mode = 'play';
   cameraRig.override = null;
@@ -88,13 +91,26 @@ function beginPlay() {
   document.getElementById('status').textContent = 'Game started';
 }
 
+function showNewGameIntro() {
+  world.mode = 'intro';
+  showStoryCard(STORY_INTRO, () => { beginPlay(); saveProgress(); });
+}
+
 function startNewGame() {
   unlockAudio();
   clearSavedGame();
+  if (hasPlayed) {
+    try {
+      sessionStorage.setItem(NEW_GAME_RESTART_KEY, '1');
+      location.reload();
+      return;
+    } catch {
+      // Storage can be blocked, so keep the in-page restart available.
+    }
+  }
   world.player.money = STARTING_MONEY;
   applyMissionProgress([]);
-  world.mode = 'intro';
-  showStoryCard(STORY_INTRO, () => { beginPlay(); saveProgress(); });
+  showNewGameIntro();
 }
 
 function continueGame() {
@@ -181,7 +197,17 @@ function boot() {
     const spawn = world.places.spawn;
     populateTrafficAround(spawn.x, spawn.z, 18, 30, 190);
     populatePedestriansAround(spawn.x, spawn.z, 30, 6, 140);
-    openTitleScreen();
+    let restarting = false;
+    try {
+      if (sessionStorage.getItem(NEW_GAME_RESTART_KEY) === '1') {
+        sessionStorage.removeItem(NEW_GAME_RESTART_KEY);
+        restarting = true;
+      }
+    } catch {
+      // Start at the title when session storage is unavailable.
+    }
+    if (restarting) showNewGameIntro();
+    else openTitleScreen();
   }
 
   let last = performance.now();

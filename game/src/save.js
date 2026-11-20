@@ -2,7 +2,15 @@
 // Storage may be missing or locked (private mode, file://), so every call is guarded and never throws.
 // The lead decides when to save; missions.js only reports progress through events.
 
-const SAVE_KEY = 'neontide.save.v1';
+function isShotMode() {
+  try {
+    return new URLSearchParams(location.search).has('shot');
+  } catch {
+    return false;
+  }
+}
+
+const SAVE_KEY = isShotMode() ? 'neontide.shot.save.v1' : 'neontide.save.v1';
 
 function storage() {
   try {

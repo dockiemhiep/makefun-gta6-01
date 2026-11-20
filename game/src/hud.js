@@ -4,8 +4,8 @@
 // the mission marker, turning with the view.
 import {
   world, on, BLOCKS, ROAD, HALF, CITY_MIN, CITY_MAX, WEST_LIMIT, roadCoord, clamp, MAX_STARS,
+  streetNameAt, districtNameAt, blockRect,
 } from './world.js';
-import { streetNameAt, districtNameAt, blockRect } from './districts.js';
 import { vehicleInReach } from './player.js';
 import { cameraYaw } from './camera.js';
 

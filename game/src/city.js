@@ -3,9 +3,8 @@
 // docks, neon signs, lit windows, palms, streetlights, the promenade, beach, pier and Ferris wheel.
 // It also registers building colliders and the named places missions use.
 import * as THREE from '../vendor/three.module.min.js';
-import { world, BLOCKS, ROAD, CITY_MIN, CITY_MAX, WEST_LIMIT, roadCoord, addCollider, makeRng, clamp } from './world.js';
+import { world, BLOCKS, ROAD, CITY_MIN, CITY_MAX, WEST_LIMIT, roadCoord, addCollider, makeRng, clamp, blockRect, districtOfBlock } from './world.js';
 import { GeometryBatch, canvasTexture, makeGlowPoints, glowTexture, placeMatrix } from './meshkit.js';
-import { blockRect, districtOfBlock } from './districts.js';
 
 const FLOOR_H = 3.4;
 const SHOP_H = 4.4;

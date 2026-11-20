@@ -54,8 +54,8 @@ step, no network requests, no image or audio files: every texture and sound is g
 ## Screenshots
 
 Staged by `game/src/shots.js` behind `?shot=<name>&seed=1`, captured at 1280x720 through the
-Playwright MCP after `window.__shotReady`, JPEG quality 80. Captured after the last change to
-game code (fix round).
+Playwright MCP after `window.__shotReady`, JPEG quality 80. These are the fix-round captures
+recorded at `35eec3e`.
 
 | File | Scene | Bytes |
 | --- | --- | --- |
@@ -64,7 +64,8 @@ game code (fix round).
 | `screenshots/3-wanted.jpg` | `?shot=wanted`: 4 stars, a PSPD officer on foot firing on the Kestrel beside his cruiser, two more cruisers coming off the boulevard, Ferris wheel behind | 138,162 |
 | `screenshots/4-mission.jpg` | `?shot=mission`: MISSION COMPLETE at Benny's Garage, marker cleared, money up to $2,250, "Game saved" in the feed | 150,467 |
 
-All four are under the 262,144-byte cap. `game/` holds 25 files, 942,294 bytes (caps: 993 files, 48 MiB).
+All four are under the 262,144-byte cap. `game/` holds 24 files (23 source, one vendored),
+942,813 bytes (caps: 993 entries, 48 MiB).
 
 ## Fix round (after the independent review)
 
@@ -130,6 +131,35 @@ From the first build, not repeated in the fix round:
 | Frame rate at 1280x720 on this machine | 60 to 61 fps in play; about 300 draw calls, 210k triangles |
 | `.makefun/owner.json`, `LICENSE` vs the starter commit | unchanged |
 
+## Contingency round (S1–S3)
+
+- **S1.** Moved the district and street helpers to the end of `world.js` and updated the three
+  importers. The judge's `dossier-view/v1` outline shows `save.js` 15th, `menus.js` 16th, and
+  `police.js` 17th. The dossier lists 23 source files.
+- **S2.** Capture URLs write to `neontide.shot.save.v1`. A scripted Node run booted the title,
+  started a $250 / 0-jobs game, ran the mission scene with the same local storage, and returned
+  to a title that still offered $250 / 0 jobs. The mission wrote $2,250 to the capture key and
+  its HUD produced “Game saved.” Save-key selection also worked with missing or inaccessible
+  `location`.
+- **S3.** After play begins, New Game clears the save, writes a tab-scoped marker, and reloads.
+  Boot consumes the marker and opens the story card. The scripted run replayed First Score →
+  switch to pistol → fire → Save and quit → New Game twice. Each fresh boot gave fists, 24
+  rounds, zero stars, and “Meet Benny on the promenade.” A separate Continue restored an earned
+  $1,250 / 1-job save and offered Heat Escape. Storage exceptions exercised the in-page restart
+  fallback and title-screen fallback.
+
+| Check | Observed result |
+| --- | --- |
+| `node --check` on all `game/src/*.js` and `git diff --check` | exit 0. The repo has no lint, type-check, or test-suite configuration. |
+| `mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts` | exit 0 twice. The dossiers matched byte for byte, and both output trees matched their sources. |
+| Screenshot caps and integrity | Exactly four 1280×720 JPEGs, 138,162–183,646 bytes. All four files match `35eec3e` and `88961e5` byte for byte. The judge contact sheet also matches. |
+| Kit `check --kit . --repo <this repo>` | exit 0 on `88961e5`. A separate `--worktree` run returned exit 0 on the edited files. Each run had 4 passed, 0 failed, 16 skipped and 5 checked at submission. |
+| `node serve.ts` and isolated headless Chrome | Blocked. `serve.ts` exited 1 with `listen EPERM` on loopback. Chrome aborted at startup with a fresh profile. Browser console checks, S2/S3 browser replays, and fresh-render comparison are pending. |
+| Scripted game-state checks | All four scenes reached `__shotReady` in Node with simulated browser APIs and a renderer substitute. Against `88961e5` with the same random inputs, the scene transforms, camera, sampled HUD content, and mission state matched. Fresh pixel output remains unverified. |
+| Web baseline, HUD and performance | Storage exceptions were guarded and existing controls were exercised in the scripted run. HUD labels were readable in the four archived frames. Static contrast for white, gold, cash green, and orange text over the HUD panel on a white backdrop ranged from 4.79:1 to 9.75:1. The pink mission tag can fall to 2.96:1 on that backdrop. Live accessibility and 60 fps checks are pending. |
+| Secrets and network | No common credential patterns in tracked files or reachable Git history. No external URL or network call matched in first-party game code. Live request monitoring is pending. |
+| Commit and push | The checkout's `.git` is read-only in this session, and an explicit write probe failed with `Operation not permitted`. GitHub DNS resolution also failed. The edits are in the working tree at `88961e5`. |
+
 ## Not verified, and known limits
 
 - Sound was not listened to: the synth code runs without errors, but nobody heard it.
@@ -139,8 +169,7 @@ From the first build, not repeated in the fix round:
 - Pointer lock was not exercised (automation cannot grant it); right-drag camera is the fallback.
 - The fix round did not replay the two missions end to end or re-measure frame rate; the new
   feed lines and impact sparks were seen through the staged scenes and a short play-test only.
-- The dossier text is capped at 160 KiB, so 6 of the 24 source files (city, sky, pickups, audio,
-  shots, CSS) and the tail of `police.js` are not shown to the judge. Imports are ordered so
-  gameplay files come first.
+- The dossier text is capped at 160 KiB. It omits 6 of the 23 source files (city, sky, pickups,
+  audio, shots, CSS) and the tail of `police.js`. Imports put gameplay files first in the outline.
 - The transcript gate, repository visibility and ownership are checked by the site at submission.
 - Police cruisers do not avoid civilian traffic; traffic ignores pedestrians on the road.
