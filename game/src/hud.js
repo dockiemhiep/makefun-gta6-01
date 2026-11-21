@@ -75,7 +75,11 @@ export function initHud() {
     <div class="hud-prompt hud-panel" data-el="prompt"></div>
     <div class="hud-objective" data-el="objective"></div>
     <div class="hud-arrest hud-panel" data-el="arrest">Hands up! PSPD arrest<i data-el="arrestBar"></i></div>
-    <div class="hud-banner" data-el="banner"><div class="hud-banner-title" data-el="bannerTitle"></div><div class="hud-banner-sub" data-el="bannerSub"></div></div>
+    <div class="hud-banner" data-el="banner">
+      <div class="hud-banner-title"><span data-el="bannerTitle"></span><span class="hud-banner-payout" data-el="bannerPayout" hidden></span></div>
+      <div class="hud-banner-unlock" data-el="bannerUnlock" hidden></div>
+      <div class="hud-banner-sub" data-el="bannerSub"></div>
+    </div>
     <div class="hud-crosshair" data-el="crosshair"></div>
     <div class="hud-state" data-el="state"><div class="hud-state-title" data-el="stateTitle"></div><div class="hud-state-sub" data-el="stateSub"></div></div>`;
   root.querySelectorAll('[data-el]').forEach((node) => { el[node.dataset.el] = node; });
@@ -87,7 +91,14 @@ export function initHud() {
     if (kind === 'mission' || kind === 'success' || kind === 'fail') showBanner(title, sub, kind);
     else pushFeedLine(title, sub);
   });
-  on('missionComplete', ({ title, reward }) => pushFeedLine(`+${formatMoney(reward)}`, `${title} paid`));
+  on('missionComplete', ({ title, reward, bonus, unlockedTitle }) => {
+    const base = `${title} +${formatMoney(reward - bonus)}`;
+    const breakdown = bonus ? `${base} · clean delivery +${formatMoney(bonus)}` : base;
+    showBanner('MISSION COMPLETE', breakdown, 'success', 4.5, {
+      payout: `+${formatMoney(reward)}`,
+      unlock: unlockedTitle ? `${unlockedTitle} unlocked` : '',
+    });
+  });
   on('wantedChanged', ({ level, previous }) => {
     if (level > previous) pushFeedLine(`Wanted: ${level} star${level > 1 ? 's' : ''}`, 'PSPD responding');
     else if (level === 0) pushFeedLine('You lost the heat', '');
@@ -101,10 +112,15 @@ export function setHudVisible(visible) {
 }
 
 /** A large centre banner: mission start, MISSION COMPLETE, MISSION FAILED. seconds = 0 keeps it up. */
-export function showBanner(title, sub = '', kind = 'mission', seconds = 4.5) {
+export function showBanner(title, sub = '', kind = 'mission', seconds = 4.5, { payout = '', unlock = '' } = {}) {
   el.banner.className = `hud-banner ${kind}`;
+  el.banner.classList.toggle('payout', Boolean(payout));
   el.bannerTitle.textContent = title;
   el.bannerSub.textContent = sub;
+  setText('bannerPayout', payout);
+  setText('bannerUnlock', unlock);
+  setShown('bannerPayout', Boolean(payout));
+  setShown('bannerUnlock', Boolean(unlock));
   shown['v:banner'] = true;
   el.banner.hidden = false;
   bannerTimer = seconds > 0 ? seconds : Infinity;

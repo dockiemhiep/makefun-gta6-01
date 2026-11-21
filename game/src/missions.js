@@ -217,14 +217,18 @@ export function completeMission() {
   if (def.id === 'firstScore' && missionCar && !missionCar.dead && missionCar.hp >= missionCar.spec.hp * 0.7) bonus = CLEAN_DELIVERY_BONUS;
   const total = def.reward + bonus;
   addMoney(total);
-  if (!m.done.includes(def.id)) m.done.push(def.id);
+  let unlockedTitle = '';
+  if (!m.done.includes(def.id)) {
+    const advancesStory = nextOfferedMissionId() === def.id;
+    m.done.push(def.id);
+    const nextId = nextOfferedMissionId();
+    if (advancesStory && !m.done.includes(nextId)) unlockedTitle = MISSIONS[nextId].title;
+  }
   releaseMissionCar(false);
   m.phase = 'complete';
   setObjective(def.id === 'firstScore' ? 'Benny pays cash. Nice driving.' : 'Tidewater owes you one. The heat is gone.', -1);
   clearMarker();
-  emit('missionComplete', { id: def.id, title: def.title, reward: total, bonus });
-  const sub = bonus ? `${def.title}  +$${def.reward}  · clean delivery +$${bonus}` : `${def.title}  +$${total}`;
-  toast('MISSION COMPLETE', sub, 'success');
+  emit('missionComplete', { id: def.id, title: def.title, reward: total, bonus, unlockedTitle });
   reofferIn = REOFFER_DELAY;
 }
 

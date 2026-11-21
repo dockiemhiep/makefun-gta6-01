@@ -5,7 +5,7 @@
 // on foot firing on the getaway at 4 stars), mission (First Score paid out at Benny's Garage), plus
 // showroom, a development view. Gunfire, prompts, banners and feed lines in a frame come from the game itself.
 import { world, setWanted, groundHeight } from './world.js';
-import { spawnVehicle, placeVehicle } from './vehicles.js';
+import { spawnVehicle, placeVehicle, VEHICLE_SPECS } from './vehicles.js';
 import { populateTrafficAround, spawnTrafficCarAt } from './traffic.js';
 import { populatePedestriansAround, spawnPedestrian } from './pedestrians.js';
 import { placePlayerOnFoot, enterVehicle } from './player.js';
@@ -151,9 +151,8 @@ function stageDrive(simulateStep) {
 
 /**
  * 3 WANTED: four stars on the Heat Escape job, on Sunset Strip by the beachfront junction. A cruiser pulls
- * up behind Mara on foot and the simulation lets its officer out; she takes the Kestrel and guns it back
- * past them, and the frame freezes on the officer's next shot at the car (fired by police.js), with a
- * second cruiser swinging off the boulevard after her.
+ * up behind Mara on foot and the simulation lets its officer out; she takes a Solano Cab back past them.
+ * The frame freezes on the officer's next shot at the cab, with two more cruisers closing in.
  */
 function stageWanted(simulateStep) {
   const p = world.player;
@@ -177,8 +176,8 @@ function stageWanted(simulateStep) {
   const isOfficer = (ped) => ped.isCop && ped.state !== 'dead';
   runUntil(simulateStep, () => world.peds.some(isOfficer), 3);
   const officer = world.peds.find(isOfficer);
-  // Mara is in the Kestrel, coming back up the Strip past the officer; more PSPD arrive off the boulevard
-  const getaway = spawnVehicle('sport', FOOT.x, FOOT.z, 0, { color: 0xff2e88 });
+  // Pass the cab's paint explicitly to keep the seeded sequence for the officer's shot.
+  const getaway = spawnVehicle('taxi', FOOT.x, FOOT.z, 0, { color: VEHICLE_SPECS.taxi.colors[0] });
   driveAtSpeed(getaway, -290.2, 1.9, Math.PI / 2 - 0.3, 19, 0);
   stagePoliceChase([
     { x: -301, z: -3.6, heading: 1.15, speed: 14 },

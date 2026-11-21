@@ -66,6 +66,101 @@ game code (fix round).
 
 All four are under the 262,144-byte cap. `game/` holds 25 files, 942,294 bytes (caps: 993 files, 48 MiB).
 
+## Tile round (2026-11-21)
+
+- Heat Escape uses the yellow Solano Cab, with the same staged officer shot and camera.
+- The First Score banner shows the earned payout beside the headline and names Heat Escape
+  when the completion opens it. The breakdown sits below, and the feed confirms a successful
+  save. Shot mode writes to tab-local session storage so the normal game's save stays intact.
+- Capture is pending. The record sandbox returned `EPERM` when `node serve.ts` tried to bind
+  port 8080, and headless Chrome exited before opening a page. The table above describes the
+  existing JPEGs.
+- A Node replay with rendering and storage shims reached all four staged states. The wanted
+  frame had four stars, three cruisers, one firing officer and one live tracer. First Score
+  paid $1,000 clean and $750 damaged, offered Heat Escape after the first clear, and omitted
+  the unlock on replay. The capture save left an existing play save intact. Both 253 px
+  visual checks still need a rendered frame.
+
+### Capture and review
+
+Outside the record sandbox, run `node serve.ts` from the repository root. In a second shell at
+the same root, run the following with Playwright, Google Chrome and Python's Pillow installed.
+If Playwright is outside Node's module path, set `PLAYWRIGHT_MODULE` to its installed module
+directory.
+
+```sh
+export TILE_CAPTURE_DIR="$(mktemp -d)"
+node <<'NODE'
+const assert = require('node:assert/strict');
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { statSync } = require('node:fs');
+const { join } = require('node:path');
+const shots = require('./shots.json');
+const origin = 'http://127.0.0.1:8080';
+(async () => {
+  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  try {
+    const context = await browser.newContext({
+      viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1,
+    });
+    for (const [index, shot] of shots.entries()) {
+      const page = await context.newPage();
+      const errors = [];
+      const external = [];
+      page.on('pageerror', error => errors.push(error.message));
+      page.on('console', message => {
+        if (message.type() === 'error') errors.push(message.text());
+      });
+      await page.route('**/*', route => {
+        const url = route.request().url();
+        if (url.startsWith(origin + '/')) return route.continue();
+        external.push(url);
+        return route.abort();
+      });
+      const response = await page.goto(origin + '/' + shot.query);
+      assert.ok(response?.ok());
+      await page.waitForFunction(() => window.__shotReady === true);
+      if (index >= 2) {
+        const path = join(process.env.TILE_CAPTURE_DIR, shot.name);
+        await page.screenshot({ path, type: 'jpeg', quality: 80, animations: 'disabled' });
+        assert.ok(statSync(path).size <= 262144);
+      }
+      assert.deepEqual(errors, []);
+      assert.deepEqual(external, []);
+      console.log(shot.name, 'ready, 0 errors, 0 external requests');
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+})().catch(error => { console.error(error); process.exitCode = 1; });
+NODE
+python3 - <<'PY'
+from os import environ
+from pathlib import Path
+from PIL import Image
+
+out = Path(environ["TILE_CAPTURE_DIR"])
+sheet = Image.new("RGB", (768, 578), "#14101d")
+for path, size, pos in [
+    (Path("screenshots/1-cover.jpg"), (768, 432), (0, 0)),
+    (Path("screenshots/2-drive.jpg"), (253, 142), (0, 436)),
+    (out / "3-wanted.jpg", (253, 142), (257, 436)),
+    (out / "4-mission.jpg", (253, 142), (515, 436)),
+]:
+    with Image.open(path) as frame:
+        sheet.paste(frame.resize(size, Image.Resampling.LANCZOS), pos)
+sheet.save(out / "judge-sheet.png")
+print(out / "judge-sheet.png")
+PY
+```
+
+Review the sheet at 100%. Check for the officer, tracer, roof light, four stars and Ferris
+wheel in the wanted tile. Check that the completion headline and payout read together, the
+Heat Escape unlock is legible, and the breakdown and save line stay secondary in the mission
+tile. When both pass, copy `"$TILE_CAPTURE_DIR/3-wanted.jpg"` and
+`"$TILE_CAPTURE_DIR/4-mission.jpg"` into `screenshots/`.
+
 ## Fix round (after the independent review)
 
 A review of commit `59c5a7f` asked for four changes to what the screenshots show. All four frames

@@ -69,6 +69,11 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0.05em 0.4em; margin-rig
 .hud-banner-title { font-size: 5.6em; line-height: 1; color: var(--gold); text-shadow: 0 0.05em 0 #7a4b00, 0 0 0.6em rgba(255, 190, 40, 0.6); }
 .hud-banner-sub { font-size: 2.5em; margin-top: 0.15em; font-style: normal; text-transform: none; letter-spacing: 0; }
 .hud-banner.success .hud-banner-title { color: #7dffb0; text-shadow: 0 0.05em 0 #06512f, 0 0 0.6em rgba(60, 255, 150, 0.6); }
+.hud-banner.payout { width: max-content; max-width: calc(100% - 2em); box-sizing: border-box; padding: 0.65em min(3.4em, 4vw); white-space: normal; }
+.hud-banner.payout .hud-banner-title { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 0 0.36em; font-size: min(5.6em, 4.8vw); }
+.hud-banner-payout { color: var(--gold); text-shadow: 0 0.05em 0 #7a4b00; white-space: nowrap; }
+.hud-banner-unlock { margin-top: 0.08em; font-size: min(3.6em, 5vw); line-height: 1.1; font-style: normal; text-transform: none; letter-spacing: 0; }
+.hud-banner.payout .hud-banner-sub { font-size: min(1.8em, 3.8vw); }
 .hud-banner.fail .hud-banner-title { color: #ff5a6e; text-shadow: 0 0.05em 0 #5a0a16, 0 0 0.6em rgba(255, 60, 90, 0.6); }
 .hud-banner.mission .hud-banner-title { color: #fff; }
 @keyframes banner-in { from { opacity: 0; transform: translateX(-50%) scale(1.25); } }

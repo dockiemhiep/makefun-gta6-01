@@ -72,7 +72,7 @@ function updateTitleCamera() {
 /** Write the save; announce it in the feed only when asked and only when the write succeeded. */
 function saveProgress(announce = false) {
   const p = world.player;
-  const written = writeSavedGame({ money: p.money, missionsDone: world.mission.done });
+  const written = writeSavedGame({ money: p.money, missionsDone: world.mission.done }, { capture: world.mode === 'shot' });
   savedMoney = p.money;
   if (written && announce === true) pushFeedLine('Game saved', `${world.mission.done.length} of 2 jobs done`);
 }

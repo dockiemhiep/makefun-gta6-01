@@ -4,9 +4,9 @@
 
 const SAVE_KEY = 'neontide.save.v1';
 
-function storage() {
+function storage(capture = false) {
   try {
-    return typeof localStorage !== 'undefined' ? localStorage : null;
+    return globalThis[capture ? 'sessionStorage' : 'localStorage'] ?? null;
   } catch {
     return null;
   }
@@ -35,10 +35,10 @@ export function loadSavedGame() {
   }
 }
 
-/** Store the current cash and completed mission ids. Returns true when it was written. */
-export function writeSavedGame({ money = 0, missionsDone = [] } = {}) {
+/** Store cash and completed jobs. Screenshot saves last only for the capture tab. */
+export function writeSavedGame({ money = 0, missionsDone = [] } = {}, { capture = false } = {}) {
   try {
-    const store = storage();
+    const store = storage(capture);
     if (!store) return false;
     const record = {
       money: Number.isFinite(money) ? Math.max(0, Math.round(money)) : 0,
